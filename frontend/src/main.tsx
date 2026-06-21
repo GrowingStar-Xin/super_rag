@@ -1,12 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ConfigProvider } from 'antd'
+import { App as AntdApp, ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 import { router } from '@/routes'
 import 'antd/dist/reset.css'
 import '@/api/client'
+import { setNotifyError } from '@/api/client'
+import { useAuthStore } from '@/stores/authStore'
+
+useAuthStore.getState().hydrate()
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,15 +22,26 @@ const queryClient = new QueryClient({
   },
 })
 
+/** 把 antd App.useApp() 的 message 注入到 API 拦截器，替代已弃用的静态 message API */
+function NotifyBootstrap({ children }: { children: React.ReactNode }) {
+  const { message } = AntdApp.useApp()
+  setNotifyError((msg) => message.error(msg))
+  return <>{children}</>
+}
+
 const root = document.getElementById('root')
 if (!root) throw new Error('root element not found')
 
 createRoot(root).render(
   <StrictMode>
     <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: '#1677ff' } }}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
+      <AntdApp>
+        <NotifyBootstrap>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </NotifyBootstrap>
+      </AntdApp>
     </ConfigProvider>
   </StrictMode>,
 )

@@ -27,7 +27,7 @@ function statusLabel(status: HealthStatus['status'] | undefined): string {
 
 function CheckCard({ title, description, data, isLoading }: CheckCardProps) {
   return (
-    <Card title={title} bordered>
+    <Card title={title} variant="outlined">
       <Paragraph type="secondary" style={{ marginBottom: 12 }}>
         {description}
       </Paragraph>
